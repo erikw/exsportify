@@ -1,4 +1,5 @@
 * Read ToS https://developer.spotify.com/technologies/libspotify/terms-of-use-non-us/
 * Abillity to import exported playlists from backup using URI? (or export URI's to M3U format https://en.wikipedia.org/wiki/M3U ?)
 * Switch to C++?
-
+* How to store login credentials? can be cached after the first login, but for how long?
+* Thread printing export progress?
