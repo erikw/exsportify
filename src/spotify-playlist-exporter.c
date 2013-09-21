@@ -25,12 +25,8 @@
 	#define DEBUG 0
 #endif
 
-// TODO expand ... to empty if none supplied
 #define DEBUG_PRINTF(format, ...)	do { if (DEBUG) { fprintf(stderr, \
-				format ,__VA_ARGS__); } } while(0)
-
-#define DEBUG_PRINT(format)	do { if (DEBUG) { fprintf(stderr, \
-				format);} } while(0)
+				(format), ##__VA_ARGS__); } } while(0)
 
 sp_session *g_session;
 static bool notify_events;
@@ -64,7 +60,7 @@ void playlist_metadata_updated(sp_playlist *pl, void *userdata)
 			--nbr_unloaded_pl;
 		}
 	} else {
-		DEBUG_PRINT(", and it's not loaded.\n");
+		DEBUG_PRINTF(", and it's not loaded.\n");
 	}
 	// TODO unregister callback for pl? Some are called multiple times.
 	/*free(userdata);*/
@@ -87,12 +83,12 @@ static void playlist_added(sp_playlistcontainer *plc, sp_playlist *pl,
 	if (sp_playlist_is_loaded(pl)) {
 		DEBUG_PRINTF(", and it's also loaded: %s.\n", sp_playlist_name(pl));
 	} else {
-		DEBUG_PRINT(", and it's not loaded.\n");
+		DEBUG_PRINTF(", and it's not loaded.\n");
 	}
 	// TODO when is it OK to free this? after unregister callback?
 	int *user_data = (int *) malloc(sizeof(int));
 	if (user_data == NULL) {
-		DEBUG_PRINT("Could not allocate int.\n");
+		DEBUG_PRINTF("Could not allocate int.\n");
 		exit(34);
 	}
 	*user_data = position;
@@ -138,7 +134,7 @@ static void logged_in(sp_session *session, sp_error error)
 		// TODO needs to check is_loaded before adding callbacks?
 		if (sp_playlistcontainer_add_callbacks(g_plc, &plc_callbacks,
 					NULL) == SP_ERROR_OK) {
-			DEBUG_PRINT("Callbacks for playlistcontainer succesfully "
+			DEBUG_PRINTF("Callbacks for playlistcontainer succesfully "
 					"added.\n");
 
 		}
@@ -153,7 +149,7 @@ static void logged_in(sp_session *session, sp_error error)
 
 static void logged_out(sp_session *session)
 {
-	DEBUG_PRINT("User is now logged out.\n");
+	DEBUG_PRINTF("User is now logged out.\n");
 	has_logged_out = true;
 }
 
@@ -271,7 +267,7 @@ void print_playlists()
 	sp_playlist *pl; // TODO Extremly strange parser bug, can declare + init 
 	// this type after "case + label:"
 	if (!sp_playlistcontainer_is_loaded(g_plc)) {
-		DEBUG_PRINT("plc is not loaded yet.\n");
+		DEBUG_PRINTF("plc is not loaded yet.\n");
 		return;
 	}
 	int pls_count = sp_playlistcontainer_num_playlists(g_plc);
@@ -321,7 +317,7 @@ int main(int argc, char **argv)
 
 	// TODO allow for argc == 1 and try logging in from cache.  Like spshell
 	if (spotify_init(argv[1], argv[2]) != 0) {
-		DEBUG_PRINT("Spotify failed to initialize\n");
+		DEBUG_PRINTF("Spotify failed to initialize\n");
 		exit(-1);
 	}
 	pthread_mutex_lock(&notify_mutex);
@@ -361,9 +357,9 @@ int main(int argc, char **argv)
 		if (all_pl_printed && is_logged_in) {
 			is_logged_in = false;
 			if (sp_session_logout(g_session) == SP_ERROR_OK) {
-				DEBUG_PRINT("Logging out...\n");
+				DEBUG_PRINTF("Logging out...\n");
 			} else {
-				DEBUG_PRINT("Failed to start log out.\n");
+				DEBUG_PRINTF("Failed to start log out.\n");
 				sp_session_release(g_session);
 				return EXIT_FAILURE;
 			}
@@ -377,6 +373,6 @@ int main(int argc, char **argv)
 		process_libspotify_events(&next_timeout);	
 		pthread_mutex_lock(&notify_mutex);
 	}
-	DEBUG_PRINT("All done, exiting.\n");
+	DEBUG_PRINTF("All done, exiting.\n");
 	sp_session_release(g_session);
 }
