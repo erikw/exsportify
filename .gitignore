@@ -2,3 +2,4 @@ bin/
 spotify-playlist-exporter
 src/appkey.c
 cache
+tags

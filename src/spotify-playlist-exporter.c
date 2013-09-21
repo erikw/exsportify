@@ -21,7 +21,10 @@
 sp_session *g_session;
 static bool notify_events;
 static bool is_logged_in = false;
+static bool has_logged_out = false;
 static bool all_work_done = false;
+static bool all_pl_printed = false;
+static bool plc_is_loaded = false;
 static sp_playlistcontainer *g_plc = NULL;
 static pthread_mutex_t notify_mutex;
 static pthread_cond_t notify_cond;
@@ -37,7 +40,12 @@ static void connection_error(sp_session *session, sp_error error)
 static void playlist_added(sp_playlistcontainer *plc, sp_playlist *pl,
 		int position, void *userdata)
 {
-	printf("Loaded playlist: %s\n", sp_playlist_name(pl));
+	printf("Added playlist");
+	if (sp_playlist_is_loaded(pl)) {
+		printf(", and it's also loaded: %s.\n", sp_playlist_name(pl));
+	} else {
+		printf(", and it's not loaded.\n");
+	}
 	// TODO register callback for this playlist
 	// TODO check if this is the current playlist we're interested int pos
 	/*sp_playlist_release(pl);*/
@@ -59,6 +67,7 @@ static void playlist_moved(sp_playlistcontainer *plc, sp_playlist *pl,
 static void container_loaded(sp_playlistcontainer *plc, void *userdata)
 {
 	printf("The playlist  container is now loaded.\n");
+	plc_is_loaded = true;
 }
 
 sp_playlistcontainer_callbacks plc_callbacks = {
@@ -66,7 +75,7 @@ sp_playlistcontainer_callbacks plc_callbacks = {
 	.playlist_removed = playlist_removed,
 	.playlist_moved = playlist_moved,
 	.container_loaded = container_loaded
-	};
+};
 
 static void logged_in(sp_session *session, sp_error error)
 {
@@ -93,7 +102,7 @@ static void logged_in(sp_session *session, sp_error error)
 static void logged_out(sp_session *session)
 {
 	printf("User is now logged out.\n");
-	is_logged_in = false;
+	has_logged_out = true;
 }
 
 
@@ -191,7 +200,7 @@ void print_playlist(sp_playlist *pl, int pl_number)
 	const char *pl_name = sp_playlist_name(pl);
 	int pl_num_tracks = sp_playlist_num_tracks(pl);
 	int pl_num_subscribers = sp_playlist_num_subscribers(pl);
-	printf("%d. %s (%d tracks, %d subscribers)", pl_number, pl_name, 
+	printf("%d. %s (%d tracks, %d subscribers)\n", pl_number, pl_name, 
 			pl_num_tracks, pl_num_subscribers);
 }
 
@@ -220,13 +229,13 @@ void print_playlists()
 		}
 
 	}
-	all_work_done = true;
+	all_pl_printed = true;
 	// Sefgault if we release plc, why?
 	/*if (sp_playlistcontainer_release(g_plc) == SP_ERROR_OK) {*/
-		/*printf("Playlistcontainer released.\n");;*/
+	/*printf("Playlistcontainer released.\n");;*/
 	/*} else {*/
-		/*printf("Failed to release Playlistcontainer.\n");*/
-		/*exit(3);*/
+	/*printf("Failed to release Playlistcontainer.\n");*/
+	/*exit(3);*/
 	/*}*/
 }
 
@@ -254,7 +263,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 	pthread_mutex_lock(&notify_mutex);
-	while (is_logged_in || !all_work_done) {
+	while (!all_work_done) {
 		/*printf("Continuing loop work.\n");*/
 		if (next_timeout == 0) {
 			while (!notify_events)
@@ -281,12 +290,14 @@ int main(int argc, char **argv)
 
 
 		// Program work.
-		if (is_logged_in && !all_work_done) {
+		if (is_logged_in && plc_is_loaded && !all_pl_printed) {
 			pthread_mutex_unlock(&notify_mutex);
 			print_playlists();
 			pthread_mutex_lock(&notify_mutex);
 		}
-		if (all_work_done) {
+
+		if (all_pl_printed && is_logged_in) {
+			is_logged_in = false;
 			if (sp_session_logout(g_session) == SP_ERROR_OK) {
 				printf("Logging out...\n");
 			} else {
@@ -295,7 +306,9 @@ int main(int argc, char **argv)
 				return EXIT_FAILURE;
 			}
 		}
-
+		if (all_pl_printed && has_logged_out) {
+			all_work_done = true;
+		}
 		// Process libspotify events
 		notify_events = false;
 		pthread_mutex_unlock(&notify_mutex);
