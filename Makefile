@@ -26,7 +26,8 @@ ERRFLAGS	= -Wall -Werror
 INCLUDES	= -I$(HDR)
 #LFLAGS		= -L$(LIB)
 LIBS		= -lspotify
-CFLAGS		= $(ERRFLAGS) -O$(OPTLVL) $(DEBUG) -std=$(STD)
+DEFINES		= -DDEBUG_PRINTING
+CFLAGS		= $(ERRFLAGS) -O$(OPTLVL) $(DEBUG) -std=$(STD) $(DEFINES)
 ifeq ($(CXX), gcc)
 	CFLAGS +=  -z noexecstack
 endif
