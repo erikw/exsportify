@@ -1,3 +1,5 @@
+// TODO memleaks
+
 #include "spotify-playlist-exporter.h"
 
 #define _POSIX_C_SOURCE  199309L	// Needed to get clock_gettime to work.
@@ -18,29 +20,80 @@
 
 sp_session *g_session;
 static bool notify_events;
+static bool is_logged_in = false;
+static bool all_work_done = false;
+static sp_playlistcontainer *g_plc = NULL;
 static pthread_mutex_t notify_mutex;
 static pthread_cond_t notify_cond;
 
+
+// TODO debug/logging method for status to stderr?
 
 static void connection_error(sp_session *session, sp_error error)
 {
 	
 }
 
+static void playlist_added(sp_playlistcontainer *plc, sp_playlist *pl,
+		int position, void *userdata)
+{
+	printf("Loaded playlist: %s\n", sp_playlist_name(pl));
+	// TODO register callback for this playlist
+	// TODO check if this is the current playlist we're interested int pos
+	/*sp_playlist_release(pl);*/
+}
+
+static void playlist_removed(sp_playlistcontainer *plc, sp_playlist *pl, int position,
+		void *userdata)
+{
+	printf("Removed playlist: %s", sp_playlist_name(pl));
+}
+
+static void playlist_moved(sp_playlistcontainer *plc, sp_playlist *pl, 
+		int position, int new_position, void *userdata)
+{
+	printf("Playlist \"%s\" moved from position %d to %d.\n",
+			sp_playlist_name(pl), position, new_position);
+}
+
+static void container_loaded(sp_playlistcontainer *plc, void *userdata)
+{
+	printf("The playlist  container is now loaded.\n");
+}
+
+sp_playlistcontainer_callbacks plc_callbacks = {
+	.playlist_added = playlist_added,
+	.playlist_removed = playlist_removed,
+	.playlist_moved = playlist_moved,
+	.container_loaded = container_loaded
+	};
+
 static void logged_in(sp_session *session, sp_error error)
 {
 	if (error == SP_ERROR_OK) {
-		printf("Logged in!\n");
+		printf("Logged in as user %s!\n", sp_session_user_name(session));
+		is_logged_in = true;
+		g_plc =  sp_session_playlistcontainer(g_session);
+		// TODO needs to check is_loaded before adding callbacks?
+		if (sp_playlistcontainer_add_callbacks(g_plc, &plc_callbacks,
+					NULL) == SP_ERROR_OK) {
+			printf("Callbacks for playlistcontainer succesfully "
+					"added.\n");
+
+		}
+
 	} else {
 		fprintf(stderr, "could not login: %s\n",
 				sp_error_message(error));
+		sp_session_release(g_session);
+		exit(2);
 	}
-	
 }
 
 static void logged_out(sp_session *session)
 {
-	exit(EXIT_SUCCESS);
+	printf("User is now logged out.\n");
+	is_logged_in = false;
 }
 
 
@@ -62,7 +115,13 @@ void notify_main_thread(sp_session *session)
 	pthread_mutex_unlock(&notify_mutex);
 }
 
-static sp_session_callbacks callbacks;
+static sp_session_callbacks callbacks = {
+	.logged_in = logged_in,
+	.logged_out = logged_out,
+	.connection_error = connection_error,
+	.notify_main_thread = notify_main_thread,
+	.log_message = log_message
+};
 
 int spotify_init(const char *username,const char *password)
 {
@@ -72,7 +131,7 @@ int spotify_init(const char *username,const char *password)
 
 	// Default values to 0.
 	memset(&config, 0, sizeof(sp_session_config));
-	
+
 	/// The application key is specific to each project, and allows Spotify
 	/// to produce statistics on how our service is used.
 	extern const char g_appkey[];
@@ -103,12 +162,6 @@ int spotify_init(const char *username,const char *password)
 
 
 	// Register the callbacks.
-	callbacks.logged_in = logged_in;
-	callbacks.logged_out = logged_out;
-	callbacks.connection_error = connection_error;
-	callbacks.notify_main_thread = notify_main_thread;
-	callbacks.log_message = log_message;
-
 	config.callbacks = &callbacks;
 
 	error = sp_session_create(&config, &session);
@@ -131,11 +184,66 @@ int spotify_init(const char *username,const char *password)
 	return 0;
 }
 
+
+
+void print_playlist(sp_playlist *pl, int pl_number)
+{
+	const char *pl_name = sp_playlist_name(pl);
+	int pl_num_tracks = sp_playlist_num_tracks(pl);
+	int pl_num_subscribers = sp_playlist_num_subscribers(pl);
+	printf("%d. %s (%d tracks, %d subscribers)", pl_number, pl_name, 
+			pl_num_tracks, pl_num_subscribers);
+}
+
+void print_playlists()
+{
+	sp_playlist *pl; // TODO Extremly strange parser bug, can declare + init 
+	// this type after "case + label:"
+	if (!sp_playlistcontainer_is_loaded(g_plc)) {
+		printf("plc is not loaded yet.\n");
+		return;
+	}
+	int pls_count = sp_playlistcontainer_num_playlists(g_plc);
+	printf("%d playlists.\n", pls_count);
+	for (int i = 0; i < pls_count; ++i) {
+		switch (sp_playlistcontainer_playlist_type(g_plc, i)) {
+			case SP_PLAYLIST_TYPE_PLAYLIST:
+			pl = sp_playlistcontainer_playlist(g_plc, i);
+			print_playlist(pl, i);
+			break;
+			case SP_PLAYLIST_TYPE_START_FOLDER:
+			break;
+			case SP_PLAYLIST_TYPE_END_FOLDER:
+			break;
+			case SP_PLAYLIST_TYPE_PLACEHOLDER:
+			break;
+		}
+
+	}
+	all_work_done = true;
+	// Sefgault if we release plc, why?
+	/*if (sp_playlistcontainer_release(g_plc) == SP_ERROR_OK) {*/
+		/*printf("Playlistcontainer released.\n");;*/
+	/*} else {*/
+		/*printf("Failed to release Playlistcontainer.\n");*/
+		/*exit(3);*/
+	/*}*/
+}
+
+static void process_libspotify_events(int *next_timeout)
+{
+	do {
+		sp_session_process_events(g_session, next_timeout);
+	} while (next_timeout == 0);
+
+}
+
 int main(int argc, char **argv)
 {
 	int next_timeout = 0;
 	if (argc < 3) {
 		fprintf(stderr,"Usage: %s <username> <password>\n",argv[0]);
+		return 1;
 	}
 	pthread_mutex_init(&notify_mutex, NULL);
 	pthread_cond_init(&notify_cond, NULL);
@@ -146,20 +254,21 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 	pthread_mutex_lock(&notify_mutex);
-	for (;;) {
+	while (is_logged_in || !all_work_done) {
+		/*printf("Continuing loop work.\n");*/
 		if (next_timeout == 0) {
 			while (!notify_events)
 				pthread_cond_wait(&notify_cond, &notify_mutex);
 		} else {
 			struct timespec ts;
 
-	#if _POSIX_TIMERS > 0
+#if _POSIX_TIMERS > 0
 			clock_gettime(CLOCK_REALTIME, &ts);
-	#else
+#else
 			struct timeval tv;
 			gettimeofday(&tv, NULL);
 			TIMEVAL_TO_TIMESPEC(&tv, &ts);
-	#endif
+#endif
 
 			ts.tv_sec += next_timeout / 1000;
 			ts.tv_nsec += (next_timeout % 1000) * 1000000;
@@ -170,16 +279,29 @@ int main(int argc, char **argv)
 			}
 		}
 
+
+		// Program work.
+		if (is_logged_in && !all_work_done) {
+			pthread_mutex_unlock(&notify_mutex);
+			print_playlists();
+			pthread_mutex_lock(&notify_mutex);
+		}
+		if (all_work_done) {
+			if (sp_session_logout(g_session) == SP_ERROR_OK) {
+				printf("Logging out...\n");
+			} else {
+				printf("Failed to start log out.\n");
+				sp_session_release(g_session);
+				return EXIT_FAILURE;
+			}
+		}
+
 		// Process libspotify events
 		notify_events = false;
 		pthread_mutex_unlock(&notify_mutex);
-
-		do {
-			sp_session_process_events(g_session, &next_timeout);
-		} while (next_timeout == 0);
-
+		process_libspotify_events(&next_timeout);	
 		pthread_mutex_lock(&notify_mutex);
 	}
+	printf("All done, exiting.\n");
 	sp_session_release(g_session);
-	return EXIT_SUCCESS;
 }
