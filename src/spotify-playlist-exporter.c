@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 #include <pthread.h>
 #include <libspotify/api.h>
@@ -28,9 +29,39 @@ static bool plc_is_loaded = false;
 static sp_playlistcontainer *g_plc = NULL;
 static pthread_mutex_t notify_mutex;
 static pthread_cond_t notify_cond;
+static unsigned int nbr_unloaded_pl = -1;
 
 
 // TODO debug/logging method for status to stderr?
+
+
+void playlist_metadata_updated(sp_playlist *pl, void *userdata)
+{
+	printf("Meta data updated for playlist number %d", *((int *) userdata));
+	if (sp_playlist_is_loaded(pl)) {
+		printf(", and it's also loaded: %s.\n", sp_playlist_name(pl));
+		print_playlist(pl, *(int *) userdata);
+		if (nbr_unloaded_pl > 0) { // TODO well this is not unique, one pls can be updated many times.
+						// Have to make a dynamica bool 
+						// array and check each 
+						// individual pls or something,
+						// OR screw the 
+						// print_playlists() thing and 
+						// only print each pls when it's 
+						// loaded from callback.
+			--nbr_unloaded_pl;
+		}
+	} else {
+		printf(", and it's not loaded.\n");
+	}
+	// TODO unregister callback for pl? Some are called multiple times.
+	/*free(userdata);*/
+}
+
+static sp_playlist_callbacks playlist_callbacks = {
+	.playlist_metadata_updated = playlist_metadata_updated
+
+};
 
 static void connection_error(sp_session *session, sp_error error)
 {
@@ -40,13 +71,20 @@ static void connection_error(sp_session *session, sp_error error)
 static void playlist_added(sp_playlistcontainer *plc, sp_playlist *pl,
 		int position, void *userdata)
 {
-	printf("Added playlist");
+	printf("Added playlist %d", position);
 	if (sp_playlist_is_loaded(pl)) {
 		printf(", and it's also loaded: %s.\n", sp_playlist_name(pl));
 	} else {
 		printf(", and it's not loaded.\n");
 	}
-	// TODO register callback for this playlist
+	// TODO when is it OK to free this? after unregister callback?
+	int *user_data = (int *) malloc(sizeof(int));
+	if (user_data == NULL) {
+		fprintf(stderr, "Could not allocate int.\n");
+		exit(34);
+	}
+	*user_data = position;
+	sp_playlist_add_callbacks(pl, &playlist_callbacks, user_data);
 	// TODO check if this is the current playlist we're interested int pos
 	/*sp_playlist_release(pl);*/
 }
@@ -66,11 +104,13 @@ static void playlist_moved(sp_playlistcontainer *plc, sp_playlist *pl,
 
 static void container_loaded(sp_playlistcontainer *plc, void *userdata)
 {
-	printf("The playlist  container is now loaded.\n");
+	int n_tracks = sp_playlistcontainer_num_playlists(plc);
+	printf("The playlist  container is now loaded with %d tracks.\n", n_tracks);
+	nbr_unloaded_pl = n_tracks;
 	plc_is_loaded = true;
 }
 
-sp_playlistcontainer_callbacks plc_callbacks = {
+static sp_playlistcontainer_callbacks plc_callbacks = {
 	.playlist_added = playlist_added,
 	.playlist_removed = playlist_removed,
 	.playlist_moved = playlist_moved,
@@ -198,10 +238,20 @@ int spotify_init(const char *username,const char *password)
 void print_playlist(sp_playlist *pl, int pl_number)
 {
 	const char *pl_name = sp_playlist_name(pl);
+	/*pl = sp_playlistcontainer_playlist(g_plc, i);*/
 	int pl_num_tracks = sp_playlist_num_tracks(pl);
 	int pl_num_subscribers = sp_playlist_num_subscribers(pl);
-	printf("%d. %s (%d tracks, %d subscribers)\n", pl_number, pl_name, 
+	switch (sp_playlistcontainer_playlist_type(g_plc, pl_number)) {
+			case SP_PLAYLIST_TYPE_PLAYLIST:
+			printf("====> %d. %s (%d tracks, %d subscribers)\n", pl_number, pl_name, 
 			pl_num_tracks, pl_num_subscribers);
+			break;
+		case SP_PLAYLIST_TYPE_START_FOLDER:
+			break; case SP_PLAYLIST_TYPE_END_FOLDER:
+			break;
+		case SP_PLAYLIST_TYPE_PLACEHOLDER:
+			break;
+	}
 }
 
 void print_playlists()
@@ -290,7 +340,7 @@ int main(int argc, char **argv)
 
 
 		// Program work.
-		if (is_logged_in && plc_is_loaded && !all_pl_printed) {
+		if (is_logged_in && plc_is_loaded && nbr_unloaded_pl == 0 && !all_pl_printed) {
 			pthread_mutex_unlock(&notify_mutex);
 			print_playlists();
 			pthread_mutex_lock(&notify_mutex);
