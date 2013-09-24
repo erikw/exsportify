@@ -252,7 +252,7 @@ static bool try_print_track(sp_track *track, int track_nbr)
 		sp_artist *artist = sp_track_artist(track, i);
 		const char *artist_name = sp_artist_name(artist); // NOTE only valid until next event processing
 		printf("%s", artist_name);
-		if (i < nbr_artists - 2) {
+		if (i < nbr_artists - 1) {
 			printf(", ");
 		}
 	}
