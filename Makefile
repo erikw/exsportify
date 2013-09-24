@@ -21,17 +21,23 @@ CC		=  $(shell hash clang 2>/dev/null && echo clang || echo gcc)
 STD		= c99
 OPTLVL		= 3
 #OPTLVL		= 0
-ERRFLAGS	= -Wall -Wextra -Werror
+#ERRFLAGS	= -Wall -Wextra -Werror
+ERRFLAGS	= -Wall -Werror
 INCLUDES	= -I$(HDR)
 #LFLAGS		= -L$(LIB)
 LIBS		= -lspotify
-CFLAGS		= $(ERRFLAGS) -O$(OPTLVL) $(DEBUG) -std=$(STD)
+DEFINES		= -DDEBUG_PRINTING
+CFLAGS		= $(ERRFLAGS) -O$(OPTLVL) $(DEBUG) -std=$(STD) $(DEFINES)
 ifeq ($(CXX), gcc)
 	CFLAGS +=  -z noexecstack
 endif
 CFLAGS 		+= -fstack-protector-all $(INCLUDES) $(LFLAGS) $(LIBS)
 DFLAGS		= -q
 #DFLAGS		= -y
+
+#CFLAGS  += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags libspotify)
+#LDFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs-only-L libspotify)
+#LDLIBS  += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs-only-l --libs-only-other libspotify)
 
 ### Targets ###
 # target: all - Default target. Clean and compile.
