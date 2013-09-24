@@ -25,42 +25,38 @@
 	#define DEBUG 0
 #endif
 
-#define DEBUG_PRINTF(format, ...)	do { if (DEBUG) { fprintf(stderr, \
+/*#define DEBUG_PRINTF(format, ...)	do { if (DEBUG) { fprintf(stderr, \*/
+#define DEBUG_PRINTF(format, ...)	do { if (DEBUG) { fprintf(stdout, \
 				(format), ##__VA_ARGS__); } } while(0)
+				/*(format), ##__VA_ARGS__); } } while(0)*/
+#define PLAYLIST_FOLDER_NAME_LEN	(256)
 
-sp_session *g_session;
+/* State variables. */
 static bool notify_events;
 static bool is_logged_in = false;
 static bool has_logged_out = false;
-static bool all_work_done = false;
 static bool all_pl_printed = false;
 static bool plc_is_loaded = false;
+
+static sp_session *g_session;
 static sp_playlistcontainer *g_plc = NULL;
+static unsigned int current_pl = 0;
+static unsigned int current_track = 0;
+static bool pl_meta_data_printed = false;;
+
 static pthread_mutex_t notify_mutex;
 static pthread_cond_t notify_cond;
-static unsigned int nbr_unloaded_pl = -1;
-
-
 
 
 void playlist_metadata_updated(sp_playlist *pl, void *userdata)
 {
-	DEBUG_PRINTF("Meta data updated for playlist number %d", *((int *) userdata));
+	/*DEBUG_PRINTF("Meta data updated for playlist number %d", *((int *) userdata));*/
 	if (sp_playlist_is_loaded(pl)) {
-		DEBUG_PRINTF(", and it's also loaded: %s.\n", sp_playlist_name(pl));
-		print_playlist(pl, *(int *) userdata);
-		if (nbr_unloaded_pl > 0) { // TODO well this is not unique, one pls can be updated many times.
-						// Have to make a dynamica bool 
-						// array and check each 
-						// individual pls or something,
-						// OR screw the 
-						// print_playlists() thing and 
-						// only print each pls when it's 
-						// loaded from callback.
-			--nbr_unloaded_pl;
-		}
+		/*DEBUG_PRINTF(", and it's also loaded: %s.\n.", sp_playlist_name(pl));*/
+		/*int pl_number = *(int *) userdata;*/
+		/*try_print_playlist(pl, pl_number);*/
 	} else {
-		DEBUG_PRINTF(", and it's not loaded.\n");
+		/*DEBUG_PRINTF(", and it's not loaded!!!!!!!!!!!!!!!!!!!!!!!!\n");*/
 	}
 	// TODO unregister callback for pl? Some are called multiple times.
 	/*free(userdata);*/
@@ -73,27 +69,27 @@ static sp_playlist_callbacks playlist_callbacks = {
 
 static void connection_error(sp_session *session, sp_error error)
 {
-	
+	DEBUG_PRINTF("Connection error.\n");
 }
 
 static void playlist_added(sp_playlistcontainer *plc, sp_playlist *pl,
 		int position, void *userdata)
 {
-	DEBUG_PRINTF("Added playlist %d", position);
+	/*DEBUG_PRINTF("Added playlist %d", position);*/
 	if (sp_playlist_is_loaded(pl)) {
-		DEBUG_PRINTF(", and it's also loaded: %s.\n", sp_playlist_name(pl));
+		/*DEBUG_PRINTF(", and it's also loaded: %s.\nNow printing it:\n", sp_playlist_name(pl));*/
+		/*try_print_playlist(pl, position);*/
 	} else {
-		DEBUG_PRINTF(", and it's not loaded.\n");
+		/*DEBUG_PRINTF(", and it's not loaded.\n Register callbacks for it\n");*/
+		// TODO when is it OK to free this? after unregister callback?
+		int *user_data = (int *) malloc(sizeof(int));
+		if (user_data == NULL) {
+			DEBUG_PRINTF("Could not allocate int.\n");
+			exit(34);
+		}
+		*user_data = position;
+		sp_playlist_add_callbacks(pl, &playlist_callbacks, user_data);
 	}
-	// TODO when is it OK to free this? after unregister callback?
-	int *user_data = (int *) malloc(sizeof(int));
-	if (user_data == NULL) {
-		DEBUG_PRINTF("Could not allocate int.\n");
-		exit(34);
-	}
-	*user_data = position;
-	sp_playlist_add_callbacks(pl, &playlist_callbacks, user_data);
-	// TODO check if this is the current playlist we're interested int pos
 	/*sp_playlist_release(pl);*/
 }
 
@@ -112,10 +108,9 @@ static void playlist_moved(sp_playlistcontainer *plc, sp_playlist *pl,
 
 static void container_loaded(sp_playlistcontainer *plc, void *userdata)
 {
-	int n_tracks = sp_playlistcontainer_num_playlists(plc);
-	DEBUG_PRINTF("The playlist  container is now loaded with %d tracks.\n", n_tracks);
-	nbr_unloaded_pl = n_tracks;
 	plc_is_loaded = true;
+	/*unsigned int nbr_playlists = sp_playlistcontainer_num_playlists(plc);*/
+	/*DEBUG_PRINTF("The playlist container is now loaded with %d playlists.\n", nbr_playlists);*/
 }
 
 static sp_playlistcontainer_callbacks plc_callbacks = {
@@ -241,60 +236,119 @@ int spotify_init(const char *username,const char *password)
 	return 0;
 }
 
-
-
-void print_playlist(sp_playlist *pl, int pl_number)
+static bool try_print_track(sp_track *track, int track_nbr)
 {
+	if (!sp_track_is_loaded(track) ||
+			!sp_album_is_loaded(sp_track_album(track))) {
+		return false;
+	}
+	// TODO print spotify URI to track
+	printf("\t");
+	if (sp_track_is_starred(g_session, track)) {
+		printf("* ");
+	}
+	int nbr_artists = sp_track_num_artists(track);
+	for (int i = 0; i < nbr_artists; ++i) {
+		sp_artist *artist = sp_track_artist(track, i);
+		const char *artist_name = sp_artist_name(artist); // NOTE only valid until next event processing
+		printf("%s", artist_name);
+		if (i < nbr_artists - 2) {
+			printf(", ");
+		}
+	}
+	printf(" -  ");
+	sp_album *album = sp_track_album(track);
+	const char *album_name = sp_album_name(album);
+	printf("%s", album_name);
+	printf(" -  ");
+	const char *track_name = sp_track_name(track);
+	printf("%s", track_name);
+	// TODO print more data.
+	
+	printf("\n");
+	return true;
+}
+
+static char *get_pl_folder_name(int pl_number)
+{
+	char *pl_folder_name = malloc(PLAYLIST_FOLDER_NAME_LEN);
+	if (pl_folder_name == NULL) {
+		DEBUG_PRINTF("Could not alloc pl_folder_name\n");
+		exit(42);
+	}
+	pl_folder_name[0] = '\0';
+	sp_error error = sp_playlistcontainer_playlist_folder_name(g_plc,
+			pl_number, pl_folder_name, PLAYLIST_FOLDER_NAME_LEN);
+	if (error != SP_ERROR_OK) {
+		DEBUG_PRINTF("Could not get folder name for playlist %d",
+				pl_number);
+	}
+	return pl_folder_name;
+}
+static void print_playlist_meta_data(sp_playlist *pl, int pl_number)
+{
+	sp_user * pl_owner = sp_playlist_owner(pl); // TODO decrease ref count after?
+	const char *pl_owner_name = sp_user_display_name(pl_owner);
 	const char *pl_name = sp_playlist_name(pl);
-	/*pl = sp_playlistcontainer_playlist(g_plc, i);*/
 	int pl_num_tracks = sp_playlist_num_tracks(pl);
 	int pl_num_subscribers = sp_playlist_num_subscribers(pl);
 	switch (sp_playlistcontainer_playlist_type(g_plc, pl_number)) {
 			case SP_PLAYLIST_TYPE_PLAYLIST:
-			DEBUG_PRINTF("====> %d. %s (%d tracks, %d subscribers)\n", pl_number, pl_name, 
-			pl_num_tracks, pl_num_subscribers);
+			DEBUG_PRINTF("====> %d. %s (%d tracks, %d"
+					"subscribers), owner: %s\n", pl_number,
+					pl_name, pl_num_tracks,
+					pl_num_subscribers, pl_owner_name);
 			break;
-		case SP_PLAYLIST_TYPE_START_FOLDER:
-			break; case SP_PLAYLIST_TYPE_END_FOLDER:
+		case SP_PLAYLIST_TYPE_START_FOLDER: {
+			char *pl_folder_name = get_pl_folder_name(pl_number);
+			DEBUG_PRINTF("====> %d BEGIN folder: %s\n", pl_number,
+					pl_folder_name); 
+	 	 	 break;
+		}
+		case SP_PLAYLIST_TYPE_END_FOLDER:
+			DEBUG_PRINTF("====> %d END folder: %s\n", pl_number,
+					pl_name); 
 			break;
 		case SP_PLAYLIST_TYPE_PLACEHOLDER:
+			DEBUG_PRINTF("====> %d PLACEHOLDER: %s\n", pl_number,
+					pl_name); 
 			break;
 	}
 }
 
-void print_playlists()
-{
-	sp_playlist *pl; // TODO Extremly strange parser bug, can declare + init 
-	// this type after "case + label:"
-	if (!sp_playlistcontainer_is_loaded(g_plc)) {
-		DEBUG_PRINTF("plc is not loaded yet.\n");
-		return;
-	}
-	int pls_count = sp_playlistcontainer_num_playlists(g_plc);
-	DEBUG_PRINTF("%d playlists.\n", pls_count);
-	for (int i = 0; i < pls_count; ++i) {
-		switch (sp_playlistcontainer_playlist_type(g_plc, i)) {
-			case SP_PLAYLIST_TYPE_PLAYLIST:
-			pl = sp_playlistcontainer_playlist(g_plc, i);
-			print_playlist(pl, i);
-			break;
-			case SP_PLAYLIST_TYPE_START_FOLDER:
-			break;
-			case SP_PLAYLIST_TYPE_END_FOLDER:
-			break;
-			case SP_PLAYLIST_TYPE_PLACEHOLDER:
-			break;
-		}
 
+bool try_print_playlist(sp_playlist *pl, int pl_number)
+{
+	if (!sp_playlist_is_loaded(pl)) {
+		return false;
 	}
-	all_pl_printed = true;
-	// Sefgault if we release plc, why?
-	/*if (sp_playlistcontainer_release(g_plc) == SP_ERROR_OK) {*/
-	/*DEBUG_PRINTF("Playlistcontainer released.\n");;*/
-	/*} else {*/
-	/*DEBUG_PRINTF("Failed to release Playlistcontainer.\n");*/
-	/*exit(3);*/
-	/*}*/
+	if (!pl_meta_data_printed) {
+		print_playlist_meta_data(pl, pl_number);
+		pl_meta_data_printed = true;
+	}
+
+	for(; current_track < sp_playlist_num_tracks(pl); ++current_track) {
+		sp_track *track = sp_playlist_track(pl, current_track);	
+		if (!try_print_track(track, current_track)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+void try_print_playlists()
+{
+	for (; current_pl < sp_playlistcontainer_num_playlists(g_plc);
+						++current_pl) {
+		sp_playlist *pl = sp_playlistcontainer_playlist(g_plc,
+								current_pl);
+		if (try_print_playlist(pl, current_pl)) {
+			pl_meta_data_printed = false;
+			current_track = 0;
+		} else {
+			return;
+		}
+	}
 }
 
 static void process_libspotify_events(int *next_timeout)
@@ -303,6 +357,10 @@ static void process_libspotify_events(int *next_timeout)
 		sp_session_process_events(g_session, next_timeout);
 	} while (next_timeout == 0);
 
+}
+
+static bool all_playlists_processed() {
+	return current_pl == sp_playlistcontainer_num_playlists(g_plc);
 }
 
 int main(int argc, char **argv)
@@ -321,6 +379,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 	pthread_mutex_lock(&notify_mutex);
+	bool all_work_done = false;
 	while (!all_work_done) {
 		/*DEBUG_PRINTF("Continuing loop work.\n");*/
 		if (next_timeout == 0) {
@@ -348,10 +407,13 @@ int main(int argc, char **argv)
 
 
 		// Program work.
-		if (is_logged_in && plc_is_loaded && nbr_unloaded_pl == 0 && !all_pl_printed) {
+		if (is_logged_in && plc_is_loaded && !all_playlists_processed()) {
 			pthread_mutex_unlock(&notify_mutex);
-			print_playlists();
+			try_print_playlists();
 			pthread_mutex_lock(&notify_mutex);
+			if (all_playlists_processed()) {
+				all_pl_printed = true;
+			}
 		}
 
 		if (all_pl_printed && is_logged_in) {
@@ -374,5 +436,11 @@ int main(int argc, char **argv)
 		pthread_mutex_lock(&notify_mutex);
 	}
 	DEBUG_PRINTF("All done, exiting.\n");
+	if (sp_playlistcontainer_release(g_plc) == SP_ERROR_OK) {
+		DEBUG_PRINTF("Playlistcontainer released.\n");;
+	} else {
+		DEBUG_PRINTF("Failed to release Playlistcontainer.\n");
+		exit(3);
+	}
 	sp_session_release(g_session);
 }

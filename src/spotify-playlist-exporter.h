@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <libspotify/api.h>
 
-void print_playlist(sp_playlist *pl, int pl_number);
+bool print_playlist(sp_playlist *pl, int pl_number);
+void print_playlists();
 
 #endif
