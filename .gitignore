@@ -1,4 +1,5 @@
-bin/
+build/
+!build/Makefile
 spotify-playlist-exporter
 src/appkey.c
 cache
