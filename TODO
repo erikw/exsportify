@@ -5,3 +5,4 @@
 * How to store login credentials? can be cached after the first login, but for how long?
 * when use sp_playlistcontainer_add_ref? fix all mem leaks.
 * handle case when a new playlist is added, and when one is moved, same for tracks
+* support backing up playlist uris given on commandline or read from file.
