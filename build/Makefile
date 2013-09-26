@@ -28,7 +28,7 @@ ifeq ($(CXX), g++)
 	CXXFLAGS +=  -z noexecstack
 endif
 CXXFLAGS	+= $(ERRFLAGS) $(shell find $(SRCDIR) -type d -exec echo -I\{\} \;)
-#LDFLAGS	=
+LDFLAGS		= -lspotify -lboost
 #LDLIBE		=
 
 # Enable debug options.
@@ -44,6 +44,7 @@ ifeq ($(COVERAGE), true)
 	CXXFLAGS += --coverage
 	LDFLAGS  += --coverage
 endif
+
 
 ## Targets ##
 .PHONY: all clean help list tar test doc install uninstall symlink
