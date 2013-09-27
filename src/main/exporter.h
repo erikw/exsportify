@@ -4,12 +4,12 @@
 namespace main {
 
 	class Exporter {
+	public:
 
 	private:
-	public:
-	enum states {LOGGED_IN, PLC_LOADED, ALL_PL_PRINTED, LOGGED_OUT};
+		enum states {LOGGED_IN, PLC_LOADED, ALL_PL_PRINTED, LOGGED_OUT};
 
-	}
+	};
 
 
 

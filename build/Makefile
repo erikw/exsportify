@@ -28,7 +28,7 @@ ifeq ($(CXX), g++)
 	CXXFLAGS +=  -z noexecstack
 endif
 CXXFLAGS	+= $(ERRFLAGS) $(shell find $(SRCDIR) -type d -exec echo -I\{\} \;)
-LDFLAGS		= -lspotify -lboost
+LDFLAGS		= -lspotify -lboost_program_options
 #LDLIBE		=
 
 # Enable debug options.
