@@ -9,3 +9,4 @@
 * support backing up playlist uris given on commandline or read from file.
 * Switch to CMake?
 * Export to different formats: cxv, json, xml
+* unittest with ctest
