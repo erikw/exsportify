@@ -24,4 +24,4 @@ $ make install
 * [cmake](http://www.cmake.org/) version Z
 * [boost](http://www.boost.org/) version Y
 * [libspotify](https://developer.spotify.com/technologies/libspotify/) version X
-* Spotify Premium & downloaded application key. To compile the source you need to obtain a [https://developer.spotify.com/technologies/libspotify/](developer key) from Spotify.
+* Spotify Premium & downloaded application key. To compile the source you need to obtain a [developer key](https://developer.spotify.com/technologies/libspotify/) from Spotify.
