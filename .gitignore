@@ -1,5 +1,3 @@
-bin/
-spotify-playlist-exporter
+build/
 src/appkey.c
-cache
 tags
