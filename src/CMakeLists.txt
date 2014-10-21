@@ -23,10 +23,3 @@ target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 # Installation
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-
-
-
-# Uninstall target
-#add_custom_target(uninstall
-    #COMMAND xargs rm < install_manifest.txt
-#)
