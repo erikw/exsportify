@@ -7,7 +7,8 @@
 #include <termios.h>
 //#include <libspotify/api.h>
 
-//using namespace std;
+#include "exsportify.h"
+
 namespace bpo = boost::program_options;
 
 
@@ -22,6 +23,7 @@ static void parse_args(int argc, const char *argv[], std::string &username,
 			"(scripted) runs.");
 	desc.add_options()
 		("help,h", "Show help message.")
+		("version,v", "Print version and exit.")
 		("store-session,s", "Store the login session.")
 		("load-session,l", "Login using stored session.")
 		("username,u", bpo::value<std::string>(&username),
@@ -38,8 +40,14 @@ static void parse_args(int argc, const char *argv[], std::string &username,
 			std::cout << desc;
 			exit(EXIT_SUCCESS);
 		}
-
 		bpo::notify(vmap); // Throw errors if there are any.
+
+		if (vmap.count("version")) {
+			std::cout << PROGRAM_NAME << " v" <<
+				EXSPORTIFY_VERSION_MAJOR << "." <<
+				EXSPORTIFY_VERSION_MINOR << std::endl;
+			exit(EXIT_SUCCESS);
+		}
 
 		if (vmap.count("store-session")) {
 			store_session = true;
@@ -49,22 +57,13 @@ static void parse_args(int argc, const char *argv[], std::string &username,
 			load_session = true;
 		}
 
-
 		if (!load_session) {
-			if (vmap.count("username")) {
-				std::cout << "username: " << username
-					<< std::endl;
-			} else {
+			if (!vmap.count("username")) {
 				std::cout << "username: ";
 				std::getline(std::cin, username);
-				std::cout << "username: " << username
-					<< std::endl;
 			}
 
-			if (vmap.count("password")) {
-				std::cout << "got password: " << password <<
-					std::endl;
-			} else {
+			if (!vmap.count("password")) {
 				std::cout << "password: ";
 				termios termattr_old;
 				tcgetattr(STDIN_FILENO, &termattr_old);
@@ -75,8 +74,6 @@ static void parse_args(int argc, const char *argv[], std::string &username,
 				std::getline(std::cin, password);
 				tcsetattr(STDIN_FILENO, TCSANOW, &termattr_old);
 				std::cout << std::endl;
-				std::cout << "got password: " << password <<
-					std::endl;
 			}
 		}
 	} catch (bpo::error &err) {
