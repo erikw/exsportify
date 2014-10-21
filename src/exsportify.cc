@@ -8,8 +8,10 @@
 //#include <libspotify/api.h>
 
 #include "exsportify.h"
+#include "spotify/spotify.h"
 
 namespace bpo = boost::program_options;
+using namespace spotify;
 
 
 static const char *USAGE_DESC = "Make a backup of all your playlists.";
@@ -90,6 +92,8 @@ int main(int argc, const char *argv[])
 	bool load_session = false;
 
 	parse_args(argc, argv, username, password, store_session, load_session);
+
+	Spotify sp;
 
 	return EXIT_SUCCESS;
 }

@@ -7,26 +7,21 @@ set ("${PROJECT_NAME}_VERSION_MINOR" 1)
 
 # Pass variables to headerfile
 configure_file (
-  	"${PROJECT_SOURCE_DIR}/src/${PROJECT_NAME}.h.in"
+  	"${PROJECT_SOURCE_DIR}/inc/${PROJECT_NAME}.h.in"
   	"${PROJECT_BINARY_DIR}/${PROJECT_NAME}.h"
 	)
 # Search for generated project header in bin folder.
 include_directories("${PROJECT_BINARY_DIR}")
 
+# Include source directory.
+subdirs(src)
 
-# Libraries
-FIND_PACKAGE(Boost 1.50 COMPONENTS program_options REQUIRED)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-
-# Executable
-add_executable(${PROJECT_NAME} src/appkey.c src/${PROJECT_NAME}.cc)
-
-# Linking
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Boost_LIBRARIES})
-
-
-
-#set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-
-# Installation
-install (TARGETS ${PROJECT_NAME} DESTINATION bin)
+# CMake does not ship with an uninstall target.
+add_custom_target(uninstall
+	COMMAND ${SH_EXECUTABLE} test -f ${CMAKE_BINARY_DIR}/install_manifest.txt &&
+		while read f\; do
+			echo \"rm -f $$f\"\;
+			rm -f \"$$f\"\;
+			done <${CMAKE_BINARY_DIR}/install_manifest.txt
+		|| :
+)
