@@ -29,7 +29,7 @@ $ sudo make uninstall
 
 ### Requirements
 
-* [cmake](http://www.cmake.org/) `>= v2.6`
-* [boost](http://www.boost.org/) `>= v1.50`
-* [libspotify](https://developer.spotify.com/technologies/libspotify/) `>= v12.1.51`
+* [cmake](http://www.cmake.org/) >= `v2.6`
+* [boost](http://www.boost.org/) >= `v1.50`
+* [libspotify](https://developer.spotify.com/technologies/libspotify/) >= `v12.1.51`
 * Spotify Premium & downloaded application key. To compile the source you need to obtain a [developer key](https://developer.spotify.com/technologies/libspotify/) from Spotify.
