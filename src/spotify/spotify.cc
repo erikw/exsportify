@@ -1,5 +1,8 @@
 #include <iostream>
 
+//#include <libspotify/api.h>
+
+#include "debug.h"
 #include "spotify/spotify.h"
 
 namespace spotify {

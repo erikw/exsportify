@@ -2,12 +2,13 @@
 #include <string>
 #include <cstdlib>
 
-#include <boost/program_options.hpp>
 #include <unistd.h>
 #include <termios.h>
-//#include <libspotify/api.h>
+
+#include <boost/program_options.hpp>
 
 #include "exsportify.h"
+#include "debug.h"
 #include "spotify/spotify.h"
 
 namespace bpo = boost::program_options;
@@ -17,8 +18,7 @@ using namespace spotify;
 static const char *USAGE_DESC = "Make a backup of all your playlists.";
 
 static void parse_args(int argc, const char *argv[], std::string &username,
-		std::string password, bool &store_session, bool &load_session)
-{
+		std::string password, bool &store_session, bool &load_session) {
 	bpo::options_description desc("Possible options. Either log in always or"
 			" store a login session for later reuse. Typically you "
 			"will log in once and reuse the session on future "
@@ -84,16 +84,30 @@ static void parse_args(int argc, const char *argv[], std::string &username,
 	}
 }
 
-int main(int argc, const char *argv[])
-{
+static void init(void) {
+#ifdef DEBUG
+	boost::log::core::get()->set_filter (
+    			boost::log::trivial::severity >= boost::log::trivial::trace
+    			);
+#else
+	boost::log::core::get()->set_filter (
+    			boost::log::trivial::severity >= boost::log::trivial::error
+    			);
+#endif
+}
+
+int main(int argc, const char *argv[]) {
 	std::string username;
 	std::string password;
 	bool store_session = false;
 	bool load_session = false;
 
+	init();
+	BOOST_LOG_TRIVIAL(trace) << "Reading command line arguments.";
 	parse_args(argc, argv, username, password, store_session, load_session);
 
 	Spotify sp;
+	sp.print();
 
 	return EXIT_SUCCESS;
 }

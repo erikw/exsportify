@@ -1,9 +1,22 @@
 cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
 
 project("exsportify" CXX)
+
+# Settings
 set (PROJECT_NAME "${PROJECT_NAME}")
 set ("${PROJECT_NAME}_VERSION_MAJOR" 0)
 set ("${PROJECT_NAME}_VERSION_MINOR" 1)
+
+#set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_BUILD_TYPE DEBUG)
+
+
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wmissing-braces -Wparentheses")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -ggdb3 -DDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb3")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wmissing-braces -Wparentheses -Wold-style-cast -pipe --std=c++98 -pedantic-errors -fstack-protector-all")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3 -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Pass variables to headerfile
 configure_file (
