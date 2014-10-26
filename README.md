@@ -14,7 +14,7 @@ $ cd exsportify
 $ cp path/to/your/downloaded/spotify/appkey.c src/appkey.c
 $ mkdir build
 $ cd build
-$ cmake .. 	# possibly change install prefix with -DCMAKE_INSTALL_PREFIX=/something
+$ cmake ..
 $ make
 $ sudo make install
 ```
