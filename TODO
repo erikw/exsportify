@@ -10,3 +10,7 @@
 * AUR package, ask during install for path to appkey.c
 * Travis CI
 * Output files in date/format/{playlist,playlistfolder}/*
+* --columns=title,album,artist,plalylistsubscribers,..
+* --onefileoutput | --dir-structure
+* --output-dir
+* Compile a binary using my appkey that can be downloaded.
