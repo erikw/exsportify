@@ -1,5 +1,5 @@
 ![exsportify-logo](img/logo_250x100.png)
-## Spotify Playlist Exporter
+## exsportify - Spotify Playlist Exporter
 
 A set of well crafted music playlists is something invaluable you don't want to loose. A playlist can easily be deleted or you may want to move to another music service. To alleviate the uncertainties of the future this program can be used to automate backups (ideal with e.g. cron) of all your Spotify playlist to files on disk.
 
