@@ -106,8 +106,14 @@ int main(int argc, const char *argv[]) {
 	BOOST_LOG_TRIVIAL(trace) << "Reading command line arguments.";
 	parse_args(argc, argv, username, password, store_session, load_session);
 
-	Spotify sp;
-	sp.print();
+	Spotify *sp = NULL;
+	if (load_session) {
+		*sp = Spotify();
+	} else {
+		*sp = Spotify(username, password);
+
+	}
+	sp->print();
 
 	return EXIT_SUCCESS;
 }

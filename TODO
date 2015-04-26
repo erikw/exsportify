@@ -1,3 +1,4 @@
+* appkey.c is not compiled
 * unittest with ctest
 * when use sp_playlistcontainer_add_ref? fix all mem leaks.
 * Thread printing export progress? vramsteg?
