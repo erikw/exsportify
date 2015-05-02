@@ -15,3 +15,4 @@
 * --onefileoutput | --dir-structure
 * --output-dir
 * Compile a binary using my appkey that can be downloaded.
+* move headerfiles from inc/ back to src/ ?

@@ -16,6 +16,8 @@ set(${PROJECT_NAME}_srcs
 	${PROJECT_NAME}.cc
 	appkey.c
 	event_loop.cc
+	session.cc
+	spotify.cc
 )
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_srcs})
