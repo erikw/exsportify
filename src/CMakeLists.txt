@@ -5,16 +5,17 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 
 
 # Libraries
-FIND_PACKAGE(Boost 1.50 COMPONENTS program_options log REQUIRED)
+FIND_PACKAGE(Boost 1.50 COMPONENTS program_options log thread system REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 
-subdirs(spotify)
+#subdirs(spotify)
 
 # Sources and executable.
 set(${PROJECT_NAME}_srcs
 	${PROJECT_NAME}.cc
 	appkey.c
+	event_loop.cc
 )
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_srcs})

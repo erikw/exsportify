@@ -6,16 +6,20 @@
 #include <termios.h>
 
 #include <boost/program_options.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "exsportify.h"
 #include "debug.h"
-#include "spotify/spotify.h"
+#include "event_loop.h"
 
 namespace bpo = boost::program_options;
-using namespace spotify;
-
 
 static const char *USAGE_DESC = "Make a backup of all your playlists.";
+
+boost::mutex notify_mutex;
+boost::condition_variable notify_cond;
+bool notify;
 
 static void parse_args(int argc, const char *argv[], std::string &username,
 		std::string password, bool &store_session, bool &load_session) {
@@ -106,14 +110,9 @@ int main(int argc, const char *argv[]) {
 	BOOST_LOG_TRIVIAL(trace) << "Reading command line arguments.";
 	parse_args(argc, argv, username, password, store_session, load_session);
 
-	Spotify *sp = NULL;
-	if (load_session) {
-		*sp = Spotify();
-	} else {
-		*sp = Spotify(username, password);
+	boost::thread event_thread = boost::thread(event_loop());
 
-	}
-	sp->print();
+	event_thread.join();
 
 	return EXIT_SUCCESS;
 }
