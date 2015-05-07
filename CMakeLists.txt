@@ -11,16 +11,26 @@ set ("${PROJECT_NAME}_VERSION_MINOR" 1)
 set(CMAKE_BUILD_TYPE DEBUG)
 
 
+# Output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+
+# Compilation flags.
+# C
 set(CMAKE_C_FLAGS "-Wall -Wextra -Wmissing-braces -Wparentheses")
 set(CMAKE_C_FLAGS_DEBUG "-O0 -ggdb3 -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb3")
+
+# C++
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wmissing-braces -Wparentheses -Wold-style-cast -pipe --std=c++11 -pedantic-errors -fstack-protector-all")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Pass variables to headerfile
 configure_file (
-  	"${PROJECT_SOURCE_DIR}/inc/${PROJECT_NAME}.h.in"
+  	"${PROJECT_SOURCE_DIR}/src/${PROJECT_NAME}.h.in"
   	"${PROJECT_BINARY_DIR}/${PROJECT_NAME}.h"
 	)
 # Search for generated project header in bin folder.
