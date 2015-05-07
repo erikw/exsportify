@@ -1,5 +1,5 @@
 ![exsportify-logo](img/logo_250x100.png)
-## Spotify Playlist Exporter
+## exsportify - Spotify Playlist Exporter
 
 A set of well crafted music playlists is something invaluable you don't want to loose. A playlist can easily be deleted or you may want to move to another music service. To alleviate the uncertainties of the future this program can be used to automate backups (ideal with e.g. cron) of all your Spotify playlist to files on disk.
 
@@ -16,12 +16,20 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-$ make install
+$ sudo make install
 ```
+
+The program can be uninstalled if the build directory is kept (or rebuilt)
+
+```console
+$ cd exsportify/build
+$ sudo make uninstall
+```
+
 
 ### Requirements
 
-* [cmake](http://www.cmake.org/) version Z
-* [boost](http://www.boost.org/) version Y
-* [libspotify](https://developer.spotify.com/technologies/libspotify/) version X
-* Spotify Premium & downloaded application key. To compile the source you need to obtain a [developer key](https://developer.spotify.com/technologies/libspotify/) from Spotify.
+* [cmake](http://www.cmake.org/) >= `v2.6`
+* [boost](http://www.boost.org/) >= `v1.50`
+* [libspotify](https://developer.spotify.com/technologies/libspotify/) >= `v12.1.51`
+* Spotify Premium & downloaded personal [application key](https://developer.spotify.com/technologies/libspotify/).

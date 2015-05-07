@@ -1,3 +1,4 @@
+* appkey.c is not compiled
 * unittest with ctest
 * when use sp_playlistcontainer_add_ref? fix all mem leaks.
 * Thread printing export progress? vramsteg?
@@ -10,3 +11,8 @@
 * AUR package, ask during install for path to appkey.c
 * Travis CI
 * Output files in date/format/{playlist,playlistfolder}/*
+* --columns=title,album,artist,plalylistsubscribers,..
+* --onefileoutput | --dir-structure
+* --output-dir
+* Compile a binary using my appkey that can be downloaded.
+* move headerfiles from inc/ back to src/ ?
