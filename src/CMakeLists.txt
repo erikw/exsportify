@@ -7,7 +7,7 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 # Libraries
 FIND_PACKAGE(Boost 1.50 COMPONENTS program_options log thread system REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/inc)
+#include_directories(${PROJECT_SOURCE_DIR}/inc)
 
 #subdirs(spotify)
 

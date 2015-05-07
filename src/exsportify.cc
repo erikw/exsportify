@@ -168,7 +168,7 @@ static int spotify_init(std::string &username, std::string &password,
 	return 0;
 }
 
-static void init(void) {
+static void boost_init(void) {
 #ifdef DEBUG
 	boost::log::core::get()->set_filter (
     			boost::log::trivial::severity >= boost::log::trivial::trace
@@ -186,7 +186,7 @@ int main(int argc, const char *argv[]) {
 	bool store_session = false;
 	bool load_session = false;
 
-	init();
+	boost_init();
 	BOOST_LOG_TRIVIAL(trace) << "Reading command line arguments.";
 	parse_args(argc, argv, username, password, store_session, load_session);
 
