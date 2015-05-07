@@ -19,7 +19,7 @@ extern "C" {
 #include "appkey.h"
 }
 
-#define USER_AGENT "exsportify"
+#define USER_AGENT PROGRAM_NAME
 
 namespace bpo = boost::program_options;
 
