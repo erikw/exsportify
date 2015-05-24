@@ -51,6 +51,6 @@ add_custom_target(uninstall
 
 add_custom_target(checkmem
 	COMMAND valgrind --leak-check=full --suppressions=${CMAKE_SOURCE_DIR}/valgrind.supp bin/${PROJECT_NAME}
-	DEPENDS bin/${PROJECT_NAME}
+	DEPENDS ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}
 	COMMENT Memory leakcheck target.
 )
