@@ -18,7 +18,7 @@ public:
 	bool has_logged_out;	// When we're truly logged out.
 	bool all_data_loaded;
 	sp_session *session = NULL;
-	sp_playlistcontainer *playlistcontainer = NULL;
+	sp_playlistcontainer *pl_container = NULL;
 };
 
 extern class Spotify *spotify;

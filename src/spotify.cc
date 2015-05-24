@@ -5,8 +5,8 @@
 class Spotify *spotify;
 
 Spotify::~Spotify() {
-	if (this->playlistcontainer != NULL) {
-		if (sp_playlistcontainer_release(this->playlistcontainer) !=
+	if (this->pl_container != NULL) {
+		if (sp_playlistcontainer_release(this->pl_container) !=
 		    SP_ERROR_OK) {
 			logt(error) << "Could not release playlistcontainer.";
 			exit(EXIT_FAILURE);

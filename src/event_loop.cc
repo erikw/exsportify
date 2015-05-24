@@ -7,7 +7,11 @@
 
 struct NotAllSpotifyDataLoadedException : std::runtime_error::runtime_error {
 	NotAllSpotifyDataLoadedException()
-		: std::runtime_error("Not All spotify data is loaded yet.") {}
+	    : NotAllSpotifyDataLoadedException(
+		  "Not All spotify data is loaded yet.") {}
+
+	NotAllSpotifyDataLoadedException(std::string msg)
+		: std::runtime_error(msg) {}
 
 };
 
@@ -29,11 +33,17 @@ static void start_logout() {
 
 static void check_all_data_loaded() {
 	logt(trace) << "Checking if all data is loaded.";
-	static int i = 0;
-	if (i++  != 10) {
-		throw NotAllSpotifyDataLoadedException();
+
+	int n_playlists =
+		sp_playlistcontainer_num_playlists(spotify->pl_container);
+	for (int pl_n = 0; pl_n < n_playlists; ++pl_n) {
+		sp_playlist *pl =
+		    sp_playlistcontainer_playlist(spotify->pl_container, pl_n);
+		if (!sp_playlist_is_loaded(pl)) {
+			throw NotAllSpotifyDataLoadedException(
+			    "Not all playlists are loaded");
+		}
 	}
-	return;
 }
 
 static void print_all_data() {
@@ -73,8 +83,8 @@ void event_loop::operator()() {
 			try {
 				check_all_data_loaded();
 				spotify->all_data_loaded = true;
-			} catch (NotAllSpotifyDataLoadedException &nasele) {
-				logt(trace) << nasele.what();
+			} catch (NotAllSpotifyDataLoadedException &nasdle) {
+				logt(trace) << nasdle.what();
 			}
 
 			if (spotify->all_data_loaded) {

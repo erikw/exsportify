@@ -34,14 +34,7 @@ void session_logged_in(sp_session *session, sp_error error) {
 	if (error == SP_ERROR_OK) {
 		logt(trace) << "Logged in as user " << sp_session_user_name(session);
 		spotify->is_logged_in = true;
-		spotify->playlistcontainer =  sp_session_playlistcontainer(spotify->session);
-		// TODO needs to check is_loaded before adding callbacks?
-		/*if (sp_playlistcontainer_add_callbacks(g_plc, &plc_callbacks,*/
-					/*NULL) == SP_ERROR_OK) {*/
-			/*logt(trace) << "Callbacks for playlistcontainer succesfully "*/
-					/*"added.";*/
-		/*}*/
-
+		spotify->pl_container =  sp_session_playlistcontainer(spotify->session);
 	} else {
 		logt(error) << "Could not login: " << sp_error_message(error);
 		sp_session_release(spotify->session);
