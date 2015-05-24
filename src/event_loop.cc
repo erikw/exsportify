@@ -91,6 +91,35 @@ static void check_all_data_loaded() {
 	spotify->all_data_loaded = true;
 }
 
+static void export_track(sp_track *track) {
+
+	if (sp_track_is_starred(spotify->session, track)) {
+		std::cout << "* ";
+	} else {
+		std::cout << "  ";
+	}
+
+	int nbr_artists = sp_track_num_artists(track);
+	for (int cur_artist = 0; cur_artist < nbr_artists; ++cur_artist) {
+		sp_artist *artist = sp_track_artist(track, cur_artist);
+		const char *artist_name = sp_artist_name(artist);
+		std::cout << artist_name;
+		if (cur_artist < nbr_artists - 1) {
+			std::cout << ", ";
+		}
+	}
+	std::cout << " - ";
+
+	sp_album *album = sp_track_album(track);
+	const char *album_name = sp_album_name(album);
+	std::cout << album_name;
+	std::cout << " - ";
+	const char *track_name = sp_track_name(track);
+	std::cout << track_name;
+	std::cout << std::endl;
+	// TODO print more data e.g. generate link.
+}
+
 static char *get_pl_folder_name(int pl_number)
 {
 	char *pl_folder_name = new char[PLAYLIST_FOLDER_NAME_LEN];
@@ -131,7 +160,7 @@ static void export_playlist(sp_playlist *pl, int pl_number) {
 			break;
 		}
 		case SP_PLAYLIST_TYPE_END_FOLDER:
-			std::cout << "END folder" << std::endl; 
+			std::cout << "END folder" << std::endl;
 			break;
 		case SP_PLAYLIST_TYPE_PLACEHOLDER:
 			std::cout << "PLACEHOLDER " << std::endl;
@@ -139,10 +168,9 @@ static void export_playlist(sp_playlist *pl, int pl_number) {
 	}
 
 
-
 	for(int cur_track = 0; cur_track < pl_num_tracks; ++cur_track) {
 		sp_track *track = sp_playlist_track(pl, cur_track);
-		check_track_loaded(track);
+		export_track(track);
 	}
 }
 
