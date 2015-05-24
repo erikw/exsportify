@@ -1,5 +1,4 @@
-* Unittest with ctest
-* Travis CI
+* Unittest with ctest with automated build.
 * Read ToS https://developer.spotify.com/technologies/libspotify/terms-of-use-non-us/
 	* Put the right stuff in LICENSE
 * Output
@@ -12,6 +11,5 @@
 * Distribution
 	* Automate distribution that compiles in my appkey (how to make that safe, mangle program?)
 	* AUR package, ask during install for path to appkey.c
-* Spinner object attached to the exporter objects. One spinner for the caching phase.
-	* vramsteg?
+* Spinner object attached to the exporter objects. One spinner for the caching phase too.
 * Place cache in users home directory?
