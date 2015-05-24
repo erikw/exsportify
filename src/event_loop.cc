@@ -5,6 +5,12 @@
 #include "event_loop.h"
 #include "spotify.h"
 
+struct NotAllSpotifyDataLoadedException : std::runtime_error::runtime_error {
+	NotAllSpotifyDataLoadedException()
+		: std::runtime_error("Not All spotify data is loaded yet.") {}
+
+};
+
 static void process_libspotify_events(int *next_timeout) {
 	do {
 		sp_session_process_events(spotify->session, next_timeout);
@@ -14,21 +20,36 @@ static void process_libspotify_events(int *next_timeout) {
 static void start_logout() {
 	spotify->is_logged_in = false;
 	if (sp_session_logout(spotify->session) == SP_ERROR_OK) {
-		BOOST_LOG_TRIVIAL(trace) << "Logout started.";
+		logt(trace) << "Logout started.";
 	} else {
-		BOOST_LOG_TRIVIAL(error) << "Failed to start Logout.";
+		logt(error) << "Failed to start Logout.";
 		exit(EXIT_FAILURE);
 	}
 }
+
+static void check_all_data_loaded() {
+	logt(trace) << "Checking if all data is loaded.";
+	static int i = 0;
+	if (i++  != 10) {
+		throw NotAllSpotifyDataLoadedException();
+	}
+	return;
+}
+
+static void print_all_data() {
+	logt(trace) << "Printing all data";
+	;
+
+}
+
 
 void event_loop::operator()() {
 	int next_timeout = 0;
 	bool process_events = true;
 
 
-	BOOST_LOG_TRIVIAL(trace) << "In event_loop";
+	logt(trace) << "In event_loop";
 	boost::unique_lock<boost::mutex> lock(spotify->mutex);
-	int i = 0;
 	while (process_events) {
 		if (next_timeout == 0) {
 			while (!spotify->notify)
@@ -48,10 +69,18 @@ void event_loop::operator()() {
 		// Program Work
 		if (spotify->has_logged_out) {
 			process_events = false;
-		} else if (i++ == 10) {
-			start_logout();
 		} else if (spotify->is_logged_in) {
-			BOOST_LOG_TRIVIAL(trace) << "Working... " << i;
+			try {
+				check_all_data_loaded();
+				spotify->all_data_loaded = true;
+			} catch (NotAllSpotifyDataLoadedException &nasele) {
+				logt(trace) << nasele.what();
+			}
+
+			if (spotify->all_data_loaded) {
+				print_all_data();
+				start_logout();
+			}
 		}
 
 

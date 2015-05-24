@@ -135,7 +135,7 @@ static int spotify_init(std::string &username, std::string &password,
 
 	error = sp_session_create(&config, &session);
 	if (SP_ERROR_OK != error) {
-		BOOST_LOG_TRIVIAL(error)
+		logt(error)
 		    << "Failed to create session: " << sp_error_message(error);
 		return 2;
 	}
@@ -144,19 +144,19 @@ static int spotify_init(std::string &username, std::string &password,
 	if (load_session) {
 		error = sp_session_relogin(session);
 		if (error == SP_ERROR_NO_CREDENTIALS) {
-			BOOST_LOG_TRIVIAL(error) << "No credentials stored!";
+			logt(error) << "No credentials stored!";
 			return 3;
 		}
 		char remembered_username[256];
 		sp_session_remembered_user(session, remembered_username,
 					   sizeof(remembered_username));
-		BOOST_LOG_TRIVIAL(trace) << "Logged in with stored user \""
+		logt(trace) << "Logged in with stored user \""
 					 << remembered_username << "\"";
 	} else {
 		error = sp_session_login(session, username.c_str(), password.c_str(),
 				 store_session, NULL);
 		if (error != SP_ERROR_OK) {
-			BOOST_LOG_TRIVIAL(error)
+			logt(error)
 		    	    << "failed to login: " << sp_error_message(error);
 			return 4;
 		}
@@ -187,13 +187,13 @@ int main(int argc, const char *argv[]) {
 	bool load_session = false;
 
 	boost_init();
-	BOOST_LOG_TRIVIAL(trace) << "Reading command line arguments.";
+	logt(trace) << "Reading command line arguments.";
 	parse_args(argc, argv, username, password, store_session, load_session);
 
 	spotify = new Spotify();
 	if (spotify_init(username, password, store_session, load_session) !=
 	    0) {
-		BOOST_LOG_TRIVIAL(error) << "Spotify failed to initialize";
+		logt(error) << "Spotify failed to initialize";
 		exit(EXIT_FAILURE);
 	}
 	boost::thread event_thread = boost::thread(event_loop());

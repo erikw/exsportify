@@ -16,7 +16,7 @@ public:
 
 	bool is_logged_in;	// When we are considered logged in.
 	bool has_logged_out;	// When we're truly logged out.
-	bool all_loaded;
+	bool all_data_loaded;
 	sp_session *session = NULL;
 	sp_playlistcontainer *playlistcontainer = NULL;
 };

@@ -8,4 +8,6 @@
 
 using namespace boost::log::trivial;
 
+#define logt(lvl) BOOST_LOG_TRIVIAL(lvl)
+
 #endif
