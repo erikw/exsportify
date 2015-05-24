@@ -44,11 +44,13 @@ void session_logged_in(sp_session *session, sp_error error) {
 
 void session_logged_out(sp_session *session)
 {
+	(void) session;
 	logt(trace) << "Has logged out.";
 	spotify->has_logged_out = true;
 }
 
 void session_notify_main_thread(sp_session *session) {
+	(void) session;
 	spotify->mutex.lock();
 	spotify->notify = true;
 	spotify->condition.notify_all();
