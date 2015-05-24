@@ -8,7 +8,7 @@
 
 sp_session_callbacks session_callbacks = {
 	session_logged_in,
-	NULL,
+	session_logged_out,
 	NULL,
 	NULL,
 	NULL,
@@ -47,6 +47,12 @@ void session_logged_in(sp_session *session, sp_error error) {
 		sp_session_release(spotify.session);
 		exit(EXIT_FAILURE);
 	}
+}
+
+void session_logged_out(sp_session *session)
+{
+	BOOST_LOG_TRIVIAL(trace) << "Has logged out.";
+	spotify.has_logged_out = true;
 }
 
 void session_notify_main_thread(sp_session *session) {

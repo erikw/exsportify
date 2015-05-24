@@ -6,6 +6,8 @@ extern sp_session_callbacks session_callbacks;
 
 void session_logged_in(sp_session *session, sp_error error);
 
+void session_logged_out(sp_session *session);
+
 void session_notify_main_thread(sp_session *session);
 
 #endif

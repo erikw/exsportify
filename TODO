@@ -1,18 +1,17 @@
-* appkey.c is not compiled
-* unittest with ctest
-* when use sp_playlistcontainer_add_ref? fix all mem leaks.
-* Thread printing export progress? vramsteg?
-* Read ToS https://developer.spotify.com/technologies/libspotify/terms-of-use-non-us/
-* Abillity to import exported playlists from backup using URI? (or export URI's to M3U format https://en.wikipedia.org/wiki/M3U ?)
-* How to store login credentials? can be cached after the first login, but for how long?
-* handle case when a new playlist is added, and when one is moved, same for tracks
-* support backing up playlist uris given on commandline or read from file.
-* Export to different formats: cxv, json, xml
-* AUR package, ask during install for path to appkey.c
+* Unittest with ctest
 * Travis CI
-* Output files in date/format/{playlist,playlistfolder}/*
-* --columns=title,album,artist,plalylistsubscribers,..
-* --onefileoutput | --dir-structure
-* --output-dir
-* Compile a binary using my appkey that can be downloaded.
-* move headerfiles from inc/ back to src/ ?
+* when use sp_playlistcontainer_add_ref? fix all mem leaks.
+* Read ToS https://developer.spotify.com/technologies/libspotify/terms-of-use-non-us/
+	* Put the right stuff in LICENSE
+* Output
+	* Files: Output files in date/format/{playlist,playlistfolder}/*
+		* CVS, JSON, XML
+	* Stdout
+	* --onefileoutput | --dir-structure
+	* --columns=title,album,artist,plalylistsubscribers,..
+	* --output-dir
+* Distribution
+	* Automate distribution that compiles in my appkey (how to make that safe, mangle program?)
+	* AUR package, ask during install for path to appkey.c
+* Spinner object attached to the exporter objects. One spinner for the caching phase.
+	* vramsteg?

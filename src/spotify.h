@@ -11,7 +11,9 @@ struct Spotify {
 	boost::condition_variable condition;
 	bool notify;
 
-	bool is_logged_in;
+	bool is_logged_in;	// When we are considered logged in.
+	bool has_logged_out;	// When we're truly logged out.
+	bool all_loaded;
 	sp_session *session = NULL;
 	sp_playlistcontainer *playlistcontainer = NULL;
 };
