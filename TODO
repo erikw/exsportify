@@ -1,6 +1,5 @@
 * Unittest with ctest
 * Travis CI
-* when use sp_playlistcontainer_add_ref? fix all mem leaks.
 * Read ToS https://developer.spotify.com/technologies/libspotify/terms-of-use-non-us/
 	* Put the right stuff in LICENSE
 * Output
