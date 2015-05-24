@@ -14,3 +14,4 @@
 	* AUR package, ask during install for path to appkey.c
 * Spinner object attached to the exporter objects. One spinner for the caching phase.
 	* vramsteg?
+* Place cache in users home directory?
