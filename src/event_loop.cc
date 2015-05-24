@@ -31,19 +31,61 @@ static void start_logout() {
 	}
 }
 
+static void check_album_loaded(sp_album *album) {
+	if (!sp_album_is_loaded(album)) {
+		throw NotAllSpotifyDataLoadedException(
+		    "All albums are not loaded.");
+	}
+}
+
+static void check_artist_loaded(sp_artist *artist) {
+	if (!sp_artist_is_loaded(artist)) {
+		throw NotAllSpotifyDataLoadedException(
+		    "All artists are not loaded.");
+	}
+}
+
+static void check_track_loaded(sp_track *track) {
+	if (!sp_track_is_loaded(track)) {
+		throw NotAllSpotifyDataLoadedException(
+		    "All tracks are not loaded.");
+	}
+	sp_album *album = sp_track_album(track);
+	check_album_loaded(album);
+
+	int n_artists = sp_track_num_artists(track);
+	for (int cur_artist = 0; cur_artist < n_artists; ++cur_artist) {
+		sp_artist *artist = sp_track_artist(track, cur_artist);
+		check_artist_loaded(artist);
+	}
+
+}
+
+static void check_playlist_loaded(sp_playlist *pl) {
+	if (!sp_playlist_is_loaded(pl)) {
+		throw NotAllSpotifyDataLoadedException(
+		    "Not all playlists are loaded");
+	}
+
+	for(int cur_track = 0; cur_track < sp_playlist_num_tracks(pl); ++cur_track) {
+		sp_track *track = sp_playlist_track(pl, cur_track);
+		check_track_loaded(track);
+	}
+}
+
 static void check_all_data_loaded() {
 	logt(trace) << "Checking if all data is loaded.";
 
 	int n_playlists =
 		sp_playlistcontainer_num_playlists(spotify->pl_container);
-	for (int pl_n = 0; pl_n < n_playlists; ++pl_n) {
+	for (int cur_pl = 0; cur_pl < n_playlists; ++cur_pl) {
 		sp_playlist *pl =
-		    sp_playlistcontainer_playlist(spotify->pl_container, pl_n);
-		if (!sp_playlist_is_loaded(pl)) {
-			throw NotAllSpotifyDataLoadedException(
-			    "Not all playlists are loaded");
-		}
+		    sp_playlistcontainer_playlist(spotify->pl_container, cur_pl);
+		check_playlist_loaded(pl);
 	}
+
+	logt(trace) << "All data is loaded!";
+	spotify->all_data_loaded = true;
 }
 
 static void print_all_data() {
@@ -82,7 +124,6 @@ void event_loop::operator()() {
 		} else if (spotify->is_logged_in) {
 			try {
 				check_all_data_loaded();
-				spotify->all_data_loaded = true;
 			} catch (NotAllSpotifyDataLoadedException &nasdle) {
 				logt(trace) << nasdle.what();
 			}
