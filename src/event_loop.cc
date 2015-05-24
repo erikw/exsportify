@@ -5,6 +5,9 @@
 #include "event_loop.h"
 #include "spotify.h"
 
+/* Maximum lenght of a playlist folder name. */
+#define PLAYLIST_FOLDER_NAME_LEN	(256)
+
 struct NotAllSpotifyDataLoadedException : std::runtime_error::runtime_error {
 	NotAllSpotifyDataLoadedException()
 	    : NotAllSpotifyDataLoadedException(
@@ -88,10 +91,70 @@ static void check_all_data_loaded() {
 	spotify->all_data_loaded = true;
 }
 
+static char *get_pl_folder_name(int pl_number)
+{
+	char *pl_folder_name = new char[PLAYLIST_FOLDER_NAME_LEN];
+	if (pl_folder_name == NULL) {
+		logt(error) << "Could not alloc pl_folder_name";
+		exit(42);
+	}
+	pl_folder_name[0] = '\0';
+	sp_error error = sp_playlistcontainer_playlist_folder_name(
+	    spotify->pl_container, pl_number, pl_folder_name,
+	    PLAYLIST_FOLDER_NAME_LEN);
+	if (error != SP_ERROR_OK) {
+		logt(error) << "Could not get folder name for playlist " <<
+				pl_number;
+	}
+	return pl_folder_name;
+}
+
+static void export_playlist(sp_playlist *pl, int pl_number) {
+	sp_user * pl_owner = sp_playlist_owner(pl);
+	const char *pl_owner_name = sp_user_display_name(pl_owner);
+	const char *pl_name = sp_playlist_name(pl);
+	int pl_num_tracks = sp_playlist_num_tracks(pl);
+	int pl_num_subscribers = sp_playlist_num_subscribers(pl);
+	std::cout << "===> " << pl_number << ". ";
+	switch (sp_playlistcontainer_playlist_type(spotify->pl_container,
+						   pl_number)) {
+		case SP_PLAYLIST_TYPE_PLAYLIST:
+			std::cout <<  pl_name << " ("
+			<< pl_num_tracks << "tracks, " << pl_num_subscribers <<
+			" subscribers), owner: " << pl_owner_name << std::endl;
+			break;
+		case SP_PLAYLIST_TYPE_START_FOLDER: {
+			char *pl_folder_name = get_pl_folder_name(pl_number);
+			std::cout << "BEGIN folder: " << pl_folder_name
+				  << std::endl;
+			delete pl_folder_name;
+			break;
+		}
+		case SP_PLAYLIST_TYPE_END_FOLDER:
+			std::cout << "END folder" << std::endl; 
+			break;
+		case SP_PLAYLIST_TYPE_PLACEHOLDER:
+			std::cout << "PLACEHOLDER " << std::endl;
+			break;
+	}
+
+
+
+	for(int cur_track = 0; cur_track < pl_num_tracks; ++cur_track) {
+		sp_track *track = sp_playlist_track(pl, cur_track);
+		check_track_loaded(track);
+	}
+}
+
 static void print_all_data() {
 	logt(trace) << "Printing all data";
-	;
-
+	int n_playlists =
+		sp_playlistcontainer_num_playlists(spotify->pl_container);
+	for (int cur_pl = 0; cur_pl < n_playlists; ++cur_pl) {
+		sp_playlist *pl =
+		    sp_playlistcontainer_playlist(spotify->pl_container, cur_pl);
+		export_playlist(pl, cur_pl);
+	}
 }
 
 
