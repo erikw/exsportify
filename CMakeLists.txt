@@ -39,7 +39,6 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Include source directory.
 subdirs(src)
 
-# CMake does not ship with an uninstall target.
 add_custom_target(uninstall
 	COMMAND ${SH_EXECUTABLE} test -f ${CMAKE_BINARY_DIR}/install_manifest.txt &&
 		while read f\; do
@@ -47,4 +46,11 @@ add_custom_target(uninstall
 			rm -f \"$$f\"\;
 			done <${CMAKE_BINARY_DIR}/install_manifest.txt
 		|| :
+	COMMENT Uninstall target (CMake provide one by default).
+)
+
+add_custom_target(checkmem
+	COMMAND valgrind --leak-check=full --suppressions=${CMAKE_SOURCE_DIR}/valgrind.supp bin/${PROJECT_NAME}
+	DEPENDS bin/${PROJECT_NAME}
+	COMMENT Memory leakcheck target.
 )

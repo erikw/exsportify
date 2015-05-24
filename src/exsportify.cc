@@ -162,9 +162,9 @@ static int spotify_init(std::string &username, std::string &password,
 		}
 	}
 
-	spotify.mutex.lock();
-	spotify.session = session;
-	spotify.mutex.unlock();
+	spotify->mutex.lock();
+	spotify->session = session;
+	spotify->mutex.unlock();
 	return 0;
 }
 
@@ -190,6 +190,7 @@ int main(int argc, const char *argv[]) {
 	BOOST_LOG_TRIVIAL(trace) << "Reading command line arguments.";
 	parse_args(argc, argv, username, password, store_session, load_session);
 
+	spotify = new Spotify();
 	if (spotify_init(username, password, store_session, load_session) !=
 	    0) {
 		BOOST_LOG_TRIVIAL(error) << "Spotify failed to initialize";
@@ -199,5 +200,6 @@ int main(int argc, const char *argv[]) {
 
 	event_thread.join();
 
+	delete spotify;
 	return EXIT_SUCCESS;
 }

@@ -6,7 +6,10 @@
 #include <libspotify/api.h>
 
 
-struct Spotify {
+class Spotify {
+public:
+	virtual ~Spotify();
+
 	boost::mutex mutex;
 	boost::condition_variable condition;
 	bool notify;
@@ -18,7 +21,7 @@ struct Spotify {
 	sp_playlistcontainer *playlistcontainer = NULL;
 };
 
-extern struct Spotify spotify;
+extern class Spotify *spotify;
 
 
 #endif
