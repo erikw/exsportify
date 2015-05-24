@@ -1,0 +1,15 @@
+* Unittest with ctest with automated build.
+* Read ToS https://developer.spotify.com/technologies/libspotify/terms-of-use-non-us/
+	* Put the right stuff in LICENSE
+* Output
+	* Files: Output files in date/format/{playlist,playlistfolder}/*
+		* CVS, JSON, XML
+	* Stdout
+	* --onefileoutput | --dir-structure
+	* --columns=title,album,artist,plalylistsubscribers,..
+	* --output-dir
+* Distribution
+	* Automate distribution that compiles in my appkey (how to make that safe, mangle program?)
+	* AUR package, ask during install for path to appkey.c
+* Spinner object attached to the exporter objects. One spinner for the caching phase too.
+* Place cache in users home directory?

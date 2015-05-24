@@ -1,0 +1,46 @@
+{
+   libspotify
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   fun:sp_session_playlistcontainer
+}
+
+{
+   libspotify
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:*
+   fun:sp_session_create
+   fun:_ZL12spotify_initRSsS_RbS0_
+   fun:main
+}
+
+{
+   libspotify
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.2.5
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   obj:/usr/lib/libspotify.so.12.1.51
+   fun:sp_session_create
+   fun:_ZL12spotify_initRSsS_RbS0_
+   fun:main
+}
