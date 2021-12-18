@@ -9,8 +9,7 @@ This product uses Music by Spotify but is not endorsed, certified or otherwise a
 The installation procedure is simple. The only special thing is that you need to replace the dummy Spotify appkey with your own.
 
 ```console
-$ git clone https://github.com/erikw/exsportify
-$ cd exsportify
+$ git clone https://github.com/erikw/exsportify && cd $(basename "$_" .git)
 $ cp path/to/your/downloaded/spotify/appkey.c src/appkey.c
 $ mkdir build
 $ cd build
