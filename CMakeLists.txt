@@ -30,8 +30,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Pass variables to headerfile
 configure_file (
-  	"${PROJECT_SOURCE_DIR}/src/${PROJECT_NAME}.h.in"
-  	"${PROJECT_BINARY_DIR}/${PROJECT_NAME}.h"
+	"${PROJECT_SOURCE_DIR}/src/${PROJECT_NAME}.h.in"
+	"${PROJECT_BINARY_DIR}/${PROJECT_NAME}.h"
 	)
 # Search for generated project header in bin folder.
 include_directories("${PROJECT_BINARY_DIR}")
