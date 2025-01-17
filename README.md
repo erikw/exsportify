@@ -1,6 +1,6 @@
 ## exsportify - Spotify Playlist Exporter
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![SLOC](https://img.shields.io/tokei/lines/github/erikw/exsportify?logo=codefactor&logoColor=lightgrey)](#)
+[![SLOC](https://sloc.xyz/github/erikw/exsportify)](#)
 [![Top programming languages used](https://img.shields.io/github/languages/top/erikw/exsportify)](#)
 
 <img alt="logo" src="img/logo_250x100.png" align="right">
